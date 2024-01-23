@@ -71,6 +71,7 @@ def state_space_search_discrete_allocation(values: List[List[float]],
             remaining_items = set(range(n_items)) - set(range(curr_n_items_allocated))
 
             final_items = tuple(curr_items[i].union(remaining_items) for i in range(n_participants))
+            # print(f'opt final_items: {final_items}')
             sums = tuple(sum(values[i][j] for j in final_items[i]) for i in range(n_participants))
             if rule == 'egalitarian':
                 return min(sums)
@@ -115,22 +116,32 @@ def state_space_search_discrete_allocation(values: List[List[float]],
         for i in range(n_participants):
             print(f'Participant {i} gets items {items[i]} with value {values[i]}')
 
+    return values, items
+
 def plot_runtime(n_items=10):
     times = tuple([] for _ in range(4))
-    for i in range(1, n_items):
+    x = range(1, n_items+1)
+    for i in x:
         values = [[1]*i for _ in range(2)]
         for j, (is_prune_a, is_prune_b) in enumerate(product([False, True], repeat=2)):
             start = time.time()
-            state_space_search_discrete_allocation(values, is_prune_a=is_prune_a, is_prune_b=is_prune_b, is_print=False)
+            ret = state_space_search_discrete_allocation(values, is_prune_a=is_prune_a, is_prune_b=False, is_print=False)
+            if j==0:
+                optimal_result = ret
+            else:
+                assert all(np.allclose(optimal_result[0][i], ret[0][i]) for i in range(2)), f'Results should be the same: ret:{ret[0]} != opt:{optimal_result[0]}'
+
             end = time.time()
             times[j].append(end-start)
 
-    x = range(1, n_items)
+    
     for i, (is_prune_a, is_prune_b) in enumerate(product([False, True], repeat=2)):
         plt.plot(x, times[i], label=f'Prune A: {is_prune_a}, Prune B:{is_prune_b}')
 
     plt.xlabel('Number of items')
     plt.ylabel('Runtime (seconds)')
+    plt.xticks(x, x)
+    plt.grid()
     plt.legend()
     plt.show()
 
@@ -138,10 +149,10 @@ def plot_runtime(n_items=10):
 
 if __name__ == "__main__":
     values = [[1, 2, 3], [4, 5, 6]]
-    state_space_search_discrete_allocation(values, rule='egalitarian')
+    state_space_search_discrete_allocation(values, rule='egalitarian', is_prune_b=True)
     print()
 
     values = [[4,5,6,7,8], [8,7,6,5,4]]
     state_space_search_discrete_allocation(values)
 
-    plot_runtime(n_items=20)
+    plot_runtime(n_items=15)
