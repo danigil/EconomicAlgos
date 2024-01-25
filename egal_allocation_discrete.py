@@ -40,13 +40,7 @@ def state_space_search_discrete_allocation(values: List[List[float]],
             return tup[:i]+(curr_set, *tup[i+1:])
 
         values_so_far, n_items_allocated, allocated_items_so_far = state
-        # new_allocations = [print(f'values_so_far: {values_so_far}, n_items_allocated: {n_items_allocated}, allocated_items_so_far: {allocated_items_so_far}')]
-        # exit()
         new_allocations = [(add_ith_value(values_so_far, i), n_items_allocated + 1, add_ith_item(deepcopy(allocated_items_so_far), i)) for i in range(n_participants)]
-        # for i_participant in range(n_participants):
-            
-        #     new_allocations[i_participant][0][i_participant] += values[i_participant][item]
-        #     new_allocations[i_participant][2][i_participant].add(item)
         
         return new_allocations
 
@@ -62,19 +56,8 @@ def state_space_search_discrete_allocation(values: List[List[float]],
     def prune_b(state_space):
         def pessimistic_bound(state):
             curr_values, curr_n_items_allocated, curr_items = state
-            # n_remaining_items = n_items - curr_n_items_allocated
             remaining_items = set(range(n_items)) - set(range(curr_n_items_allocated))
-            # items_each_gets = tuple(set() for _ in range(n_participants))
-            # for i in range(n_participants-1):
-            #     n_items_i_gets = random.randint(0, len(remaining_items))
-            #     items_i_gets = random.sample(remaining_items, n_items_i_gets)
 
-            #     remaining_items -= set(items_i_gets)
-            #     items_each_gets[i].update(items_i_gets)
-                
-            # items_each_gets[-1].update(remaining_items)
-
-            # final_items = tuple(curr_items[i].union(items_each_gets[i]) for i in range(n_participants))
             final_items = tuple(curr_items[i].union(remaining_items) if i==0 else curr_items[i] for i in range(n_participants)) # give everything to 0
             assert set().union(*final_items) == set(range(n_items)), f'{set().union(*final_items)}'
             sums = tuple(sum(values[i][j] for j in final_items[i]) for i in range(n_participants))
@@ -88,7 +71,7 @@ def state_space_search_discrete_allocation(values: List[List[float]],
             remaining_items = set(range(n_items)) - set(range(curr_n_items_allocated))
 
             final_items = tuple(curr_items[i].union(remaining_items) for i in range(n_participants))
-            # print(f'opt final_items: {final_items}')
+
             sums = tuple(sum(values[i][j] for j in final_items[i]) for i in range(n_participants))
             if rule == 'egalitarian':
                 return min(sums)
@@ -98,10 +81,7 @@ def state_space_search_discrete_allocation(values: List[List[float]],
         def check_state(state):
             pes = pessimistic_bound(state)
             opt = optimistic_bound(state)
-            
-            # print(f'state: {state}, pes: {pes}, opt: {opt}')
-            # if pes >= opt:
-            #     print(f'pruned_b state: {state}, pes: {pes}, opt: {opt}')
+
             return state[1]==n_items or pes < opt
             
 
@@ -148,12 +128,10 @@ def brute_force_discrete_allocation(values: List[List[float]], rule: Literal['eg
     def generate_options(n_participants, items={1,3,5}):
 
         if n_participants == 1:
-            # print(f'items: {items}')
             yield (items,)
         else:
             for k in range(0, len(items)+1):
                 for items0 in combinations(items, k):
-                    # print(f'items0: {items0}')
                     remaining_items = items - set(items0)
                     for option in generate_options(n_participants-1, remaining_items):
                         yield (set(items0), *option)
