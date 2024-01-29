@@ -44,21 +44,42 @@ def state_space_search_discrete_allocation(values: List[List[float]],
         
         return new_allocations
 
+    prune_a_count = 0
+    prune_b_count = 0
+
     def prune_a(state_space):
         unique_states = set([state[0] for state in state_space])
+        pruned = len(state_space) - len(unique_states)
         new_unique_states = []
         for state in state_space:
             if state[0] in unique_states:
                 unique_states.remove(state[0])
                 new_unique_states.append(state)
-        return new_unique_states
+        return new_unique_states, pruned
 
     def prune_b(state_space):
         def pessimistic_bound(state):
             curr_values, curr_n_items_allocated, curr_items = state
             remaining_items = set(range(n_items)) - set(range(curr_n_items_allocated))
+            n_ri = len(remaining_items)
+            
+            q = n_ri // n_participants
+            r = n_ri % n_participants
+            # shuffled = random.shuffle(list(remaining_items))
+            items_i_gets = tuple(set() for _ in range(n_participants))
+            for i in range(n_participants):
+                sampled = set(random.sample(list(remaining_items), q))
+                items_i_gets[i].update(sampled)
+                remaining_items -= sampled
+                
+            remaining_idxs = random.sample(range(n_participants), r)
+            for i in remaining_idxs:
+                sampled = set(random.sample(list(remaining_items), 1))
+                items_i_gets[i].update(sampled)
+                remaining_items -= sampled
+            assert len(remaining_items) == 0
 
-            final_items = tuple(curr_items[i].union(remaining_items) if i==0 else curr_items[i] for i in range(n_participants)) # give everything to 0
+            final_items = tuple(curr_items[i].union(items_i_gets[i]) for i in range(n_participants))
             assert set().union(*final_items) == set(range(n_items)), f'{set().union(*final_items)}'
             sums = tuple(sum(values[i][j] for j in final_items[i]) for i in range(n_participants))
             if rule == 'egalitarian':
@@ -79,21 +100,24 @@ def state_space_search_discrete_allocation(values: List[List[float]],
                 return np.prod(sums)
             
         def check_state(state):
-            pes = pessimistic_bound(state)
             opt = optimistic_bound(state)
+            if opt == 0:
+                return state[1]==n_items
+            pes = pessimistic_bound(state)
 
             return state[1]==n_items or pes < opt
             
 
         new_state_space = list(filter(check_state, state_space))
 
-        return new_state_space
+        return new_state_space, len(state_space) - len(new_state_space)
 
     n_participants, n_items = assert_values_valid(values)
 
     empty_allocation = tuple([0]*n_participants), 0, tuple(set() for _ in range(n_participants))
     state_space = [empty_allocation]
     curr_round = 0
+    
     while curr_round < n_items:
         if state_space[0][1] != curr_round:
             curr_round+=1
@@ -101,9 +125,11 @@ def state_space_search_discrete_allocation(values: List[List[float]],
                 break
             
             if is_prune_a:
-                state_space=prune_a(state_space)
+                state_space, pruned = prune_a(state_space)
+                prune_a_count += pruned
             if is_prune_b:
-                state_space=prune_b(state_space)
+                state_space, pruned = prune_b(state_space)
+                prune_b_count += pruned
 
         state = state_space.pop(0)
         state_space.extend(allocate_item(state, state[1]))
@@ -116,6 +142,10 @@ def state_space_search_discrete_allocation(values: List[List[float]],
     best_allocation = max(state_space, key=rule_fn)
     values, _, items = best_allocation
     if is_print:
+        if prune_a:
+            print(f'Prune A: {prune_a_count}')
+        if prune_b:
+            print(f'Prune B: {prune_b_count}')
         for i in range(n_participants):
             print(f'Participant {i} gets items {items[i]} with value {values[i]}')
 
@@ -217,12 +247,12 @@ def test():
     test2()
 
 if __name__ == "__main__":
-    values = [[1, 2, 3], [4, 5, 6]]
-    state_space_search_discrete_allocation(values, rule='egalitarian', is_print=True)
+    # values = [[1, 2, 3], [4, 5, 6]]
+    # state_space_search_discrete_allocation(values, rule='egalitarian', is_print=True)
 
-    values = [[1]*10 for _ in range(2)]
-    state_space_search_discrete_allocation(values, rule='egalitarian', is_print=True)
+    # values = [[1]*10 for _ in range(2)]
+    # state_space_search_discrete_allocation(values, rule='egalitarian', is_print=True)
 
-    test()
+    # test()
 
-    plot_runtime(n_items=10)
+    plot_runtime(n_items=5)
