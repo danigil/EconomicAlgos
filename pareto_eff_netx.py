@@ -39,6 +39,8 @@ def is_pareto_efficient(valuations: List[List[float]], allocation: List[List[flo
         for i, j in itertools.permutations(range(n_participants), 2):
             i_items = set([k for k in range(n_items) if allocation[i][k] > 0])
             ratios = [(valuations[i][item]/valuations[j][item], item) for item in i_items]
+            if len(ratios) == 0:
+                continue
             min_ratio = min(ratios, key=lambda x: x[0])
 
             G.add_edge(i, j, weight=min_ratio[0])
@@ -113,8 +115,16 @@ def test():
 
         assert is_pareto_efficient(valuations, allocation) != True
 
+    def test3():
+        # dictatorship
+        valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
+        allocation = [[1, 1, 1], [0, 0, 0], [0, 0, 0]]
+        
+        assert is_pareto_efficient(valuations, allocation) == True
+
     test1()
     test2()
+    test3()
 
 if __name__ == '__main__':
     valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
