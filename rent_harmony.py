@@ -3,7 +3,7 @@ import networkx as nx
 import cvxpy as cp
 import math
 
-def find_rent_alloc(values: List[List[float]], rent_price: float, positive_prices=False) -> Union[Tuple[List[int], List[float]], None]:
+def find_rent_alloc(values: List[List[float]], rent_price: float, positive_prices=False, is_print=False) -> Union[Tuple[List[int], List[float]], None]:
     """
     find rent allocation with non-negative/positive prices if it exists
 
@@ -55,6 +55,11 @@ def find_rent_alloc(values: List[List[float]], rent_price: float, positive_price
         room_prices = prices.value
         assert math.isclose(sum(room_prices), rent_price)
 
+        if is_print:
+            print(f"rent price: {rent_price}")
+            print(f"room values: {values}")
+            for i in range(n_participants):
+                print(f"\tperson_{i} gets room_{room_alloc[i]} at price {room_prices[room_alloc[i]]}")
         return room_alloc, room_prices
 
 def test():
@@ -98,4 +103,9 @@ def test():
 if __name__ == '__main__':
     test()
     
+    values = [[20, 30, 40], [40, 30, 20], [30, 30, 30]]
+    rent_price = 90
+
+    ret = find_rent_alloc(values, rent_price, is_print=True)
+
     
