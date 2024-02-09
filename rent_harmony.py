@@ -27,18 +27,12 @@ def find_rent_alloc(values: List[List[float]], rent_price: float, positive_price
     B.add_nodes_from([f"person_{i}" for i in range(n_participants)], bipartite=0)
     B.add_nodes_from([f"room_{i}" for i in range(n_rooms)], bipartite=1) 
     B.add_weighted_edges_from([(f"person_{i}", f"room_{j}", values[i][j]) for i in range(n_participants) for j in range(n_rooms)])
-    # print(B)
     
     M = nx.max_weight_matching(B, maxcardinality=True)
     M_0 = {k:v for k,v in M}
     M_1 = {v:k for k,v in M}
     M = {**M_0, **M_1}
-    # print(M)
-    
-    # if positive_prices:
-    #     prices = cp.Variable(n_rooms, pos=True)
-    # else:
-    #     prices = cp.Variable(n_rooms, nonneg=True)
+
     z = cp.Variable(1)
     prices = cp.Variable(n_rooms)
 
@@ -49,14 +43,12 @@ def find_rent_alloc(values: List[List[float]], rent_price: float, positive_price
     
     val_const = [values[i][extract_room_idx(M[f"person_{i}"])] - prices[i] >= values[i][extract_room_idx(M[f"person_{j}"])] - prices[j] for i in range(n_participants) for j in range(n_participants)]
 
-    
     prob = cp.Problem(cp.Maximize(z), [prices_sum_constr] + val_const + prices_constr)
     prob.solve(solver=cp.CLARABEL)
 
     z_req = z.value > 0 if positive_prices else z.value >= 0
 
     if prob.status == "infeasible" or not z_req:
-        # print("nope")
         return None
     else:
         room_alloc =  [extract_room_idx(M[f"person_{i}"]) for i in range(n_participants)]
