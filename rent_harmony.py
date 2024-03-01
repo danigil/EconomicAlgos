@@ -3,7 +3,7 @@ import networkx as nx
 import cvxpy as cp
 import math
 
-def find_rent_alloc(values: List[List[float]], rent_price: float, positive_prices=False, is_print=False) -> Union[Tuple[List[int], List[float]], None]:
+def find_rent_alloc(values: List[List[float]], rent_price: float, positive_prices=False, allow_neg=False, is_print=False) -> Union[Tuple[List[int], List[float]], None]:
     """
     find rent allocation with non-negative/positive prices if it exists
 
@@ -46,7 +46,10 @@ def find_rent_alloc(values: List[List[float]], rent_price: float, positive_price
     prob = cp.Problem(cp.Maximize(z), [prices_sum_constr] + val_const + prices_constr)
     prob.solve(solver=cp.CLARABEL)
 
-    z_req = z.value > 0 if positive_prices else z.value >= 0
+    if allow_neg:
+        z_req = True
+    else:
+        z_req = z.value > 0 if positive_prices else z.value >= 0
 
     if prob.status == "infeasible" or not z_req:
         return None
@@ -103,9 +106,21 @@ def test():
 if __name__ == '__main__':
     test()
     
-    values = [[20, 30, 40], [40, 30, 20], [30, 30, 30]]
-    rent_price = 90
+    # values = [[75, 25], [60, 25]]
+    # rent_price = 100
+    # ret = find_rent_alloc(values, rent_price, is_print=True)
 
-    ret = find_rent_alloc(values, rent_price, is_print=True)
+    # values = [[35, 40, 25], [35, 60, 40], [25, 40, 20]]
+    # rent_price = 100
+    # ret = find_rent_alloc(values, rent_price, is_print=True)
+
+    values = [[150, 0], [140, 10]]
+    rent_price = 100
+    ret = find_rent_alloc(values, rent_price, allow_neg=True, is_print=True)
+
+    # values = [[20, 30, 40], [40, 30, 20], [30, 30, 30]]
+    # rent_price = 90
+
+    # ret = find_rent_alloc(values, rent_price, is_print=True)
 
     
