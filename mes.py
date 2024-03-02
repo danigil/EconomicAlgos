@@ -79,16 +79,16 @@ def mes(votes: Iterable[Iterable[str]], k: int):
     candidate_prices = {icandidate:1 for icandidate in range(n_candidates)}
 
     elected = set()
-    try:
-        for i in range(k):
-            elected_candidate, payments = elect_next_budget_item(votes, budgets, candidate_prices, require_unique_candidate=True)
-            for ivoter, payment in payments.items():
-                budgets[ivoter] -= payment
-            candidate_prices[elected_candidate] = CANDIDATE_ALREADY_ELECTED
-            elected.add(elected_candidate)
-    except Exception as e:
-        # print(e)
-        return None
+    # try:
+    for i in range(k):
+        elected_candidate, payments = elect_next_budget_item(votes, budgets, candidate_prices, require_unique_candidate=True)
+        for ivoter, payment in payments.items():
+            budgets[ivoter] -= payment
+        candidate_prices[elected_candidate] = CANDIDATE_ALREADY_ELECTED
+        elected.add(elected_candidate)
+    # except Exception as e:
+    #     # print(e)
+    #     return None
     return elected
     
     
