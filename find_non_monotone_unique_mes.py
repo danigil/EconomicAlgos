@@ -4,6 +4,7 @@ import traceback
 from mes import mes
 counter = 0
 error_counter = {}
+found_counter = 0
 def check_monotonicty_all_ks(votes, c):
     global counter
     def check_monotonicty(committees_k1, committees_k2):
@@ -50,7 +51,7 @@ def check_monotonicty_all_ks(votes, c):
         return None
 
 def find_non_monotone_example(n, c, vote_options):
-    
+    global found_counter
     found = False
     for votes in filter(lambda votes: len(set().union(*list(set(vote) for vote in votes))) >= c,product(vote_options, repeat=n)):
         n_votes_per_candidate = [0] * c
@@ -70,14 +71,15 @@ def find_non_monotone_example(n, c, vote_options):
         if rets is not None:
             for ret in rets: 
                 k1, k2, committees_k1, committees_k2 = ret
-                print(f'{"@"*20}FOUND NON-MONOTONE EXAMPLE{"@"*20}')
-                print(f'n: {n}, c: {c}')
-                print(f'votes: {votes}')
-                print(f'k1: {k1}, k2: {k2}')
-                print()
+                # print(f'{"@"*20}FOUND NON-MONOTONE EXAMPLE{"@"*20}')
+                # print(f'n: {n}, c: {c}')
+                # print(f'votes: {votes}')
+                # print(f'k1: {k1}, k2: {k2}')
+                # print()
                 # print(f'committees_k1: {committees_k1}')
                 # print(f'committees_k2: {committees_k2}')
                 found = True
+                found_counter += 1
             # break
         
     if not found:
@@ -100,3 +102,4 @@ if __name__ == '__main__':
     print(f'total runs: {counter}')
     print(f'error_counter: {error_counter}')
     print(f'valid runs: {counter - sum(error_counter.values())}')
+    print(f'found_counter: {found_counter}')
