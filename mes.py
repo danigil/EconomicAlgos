@@ -24,6 +24,7 @@ def elect_next_budget_item(
     
     affordable_itmes = set(filter(is_affordable, items))
     if len(affordable_itmes) == 0:
+        return None, None
         raise Exception('No affordable item')
     
     if require_unique_candidate:
@@ -82,6 +83,8 @@ def mes(votes: Iterable[Iterable[str]], k: int):
     # try:
     for i in range(k):
         elected_candidate, payments = elect_next_budget_item(votes, budgets, candidate_prices, require_unique_candidate=True)
+        if elected_candidate is None and payments is None:
+            return elected
         for ivoter, payment in payments.items():
             budgets[ivoter] -= payment
         candidate_prices[elected_candidate] = CANDIDATE_ALREADY_ELECTED

@@ -1,5 +1,6 @@
 from itertools import combinations, product
 import sys
+import traceback
 from mes import mes
 counter = 0
 error_counter = {}
@@ -19,7 +20,19 @@ def check_monotonicty_all_ks(votes, c):
             committees_k2 =mes(votes, k2)
             
         except Exception as e:
-            # ex_type, ex_value, ex_traceback = sys.exc_info()
+            if str(e) == '':
+                # print(e)
+                ex_type, ex_value, ex_traceback = sys.exc_info()
+                # Extract unformatter stack traces as tuples
+                trace_back = traceback.extract_tb(ex_traceback)
+
+                # Format stacktrace
+                stack_trace = list()
+                print(votes)
+                for trace in trace_back:
+                    stack_trace.append("File : %s , Line : %d, Func.Name : %s, Message : %s" % (trace[0], trace[1], trace[2], trace[3]))
+
+                print("Stack trace : %s" %stack_trace)
             if str(e) in error_counter:
                 error_counter[str(e)] += 1
             else:
@@ -39,7 +52,7 @@ def check_monotonicty_all_ks(votes, c):
 def find_non_monotone_example(n, c, vote_options):
     
     found = False
-    for votes in product(vote_options, repeat=n):
+    for votes in filter(lambda votes: len(set().union(*list(set(vote) for vote in votes))) >= c,product(vote_options, repeat=n)):
         n_votes_per_candidate = [0] * c
         for vote in votes:
             for can in vote:
@@ -73,11 +86,11 @@ def find_non_monotone_example(n, c, vote_options):
 # find_non_monotone_example(3, 4)
 if __name__ == '__main__':
     # print('dababy')
-    for c in range(1, 6):
+    for c in range(1, 5):
         print(f'c: {c}')
         vote_options = set().union(*[set(combinations(range(c), i)) for i in range(1,c+1)])
         # print(f'c: {c}')
-        for n in range(1, 6):
+        for n in range(1, 5):
             print(f'\tn: {n}')
             find_non_monotone_example(n, c, vote_options)
         
