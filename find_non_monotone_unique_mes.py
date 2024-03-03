@@ -88,11 +88,13 @@ def find_non_monotone_example(n, c, vote_options):
 # find_non_monotone_example(3, 4)
 if __name__ == '__main__':
     # print('dababy')
-    for c in range(1, 5):
+    c_options = [3] # range(1, 5)
+    n_options = [10] # range(1, 5)
+    for c in c_options:
         print(f'c: {c}')
         vote_options = set().union(*[set(combinations(range(c), i)) for i in range(1,c+1)])
         # print(f'c: {c}')
-        for n in range(1, 5):
+        for n in n_options:
             print(f'\tn: {n}')
             find_non_monotone_example(n, c, vote_options)
         
