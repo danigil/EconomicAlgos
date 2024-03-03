@@ -71,10 +71,10 @@ def find_non_monotone_example(n, c, vote_options):
         if rets is not None:
             for ret in rets: 
                 k1, k2, committees_k1, committees_k2 = ret
-                # print(f'{"@"*20}FOUND NON-MONOTONE EXAMPLE{"@"*20}')
+                print(f'{"@"*20}FOUND NON-MONOTONE EXAMPLE{"@"*20}')
                 # print(f'n: {n}, c: {c}')
-                # print(f'votes: {votes}')
-                # print(f'k1: {k1}, k2: {k2}')
+                print(f'votes: {votes}')
+                print(f'k1: {k1}, k2: {k2}')
                 # print()
                 # print(f'committees_k1: {committees_k1}')
                 # print(f'committees_k2: {committees_k2}')
@@ -88,20 +88,28 @@ def find_non_monotone_example(n, c, vote_options):
 # find_non_monotone_example(3, 4)
 if __name__ == '__main__':
     # print('dababy')
-    c_options = [3] # range(1, 5)
-    n_options = [10] # range(1, 5)
+    c_options = [3,4] # range(1, 5)
+    n_options = [10,20] # range(1, 5)
     for c in c_options:
-        print(f'c: {c}')
+        # print(f'c: {c}')
         vote_options = set().union(*[set(combinations(range(c), i)) for i in range(1,c+1)])
         # print(f'c: {c}')
         for n in n_options:
-            print(f'\tn: {n}')
+            print(f'c: {c}, n: {n}')
+
+            counter = 0
+            error_counter = {}
+            found_counter = 0
+
             find_non_monotone_example(n, c, vote_options)
+
+            print(f'total runs: {counter}')
+            print(f'error_counter: {error_counter}')
+            print(f'valid runs: {counter - sum(error_counter.values())}')
+            print(f'found_counter: {found_counter}')
+            print()
         
         print('~'*10)
         print('')
 
-    print(f'total runs: {counter}')
-    print(f'error_counter: {error_counter}')
-    print(f'valid runs: {counter - sum(error_counter.values())}')
-    print(f'found_counter: {found_counter}')
+    
